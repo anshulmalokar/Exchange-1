@@ -1,35 +1,9 @@
+import { Order } from "./order";
+import { Depth, container } from "./depth";
+import { Fill } from "./Fills";
+
 let GLOBAL_TRADE_ID = 1;
-
-export interface Order {
-    price: number;
-    quantity: number;
-    orderId: string;
-    filled: number;
-    side: "buy" | "sell";
-    userId: string;
-}
-
-const BASE_CURRENCY = "INR";
-
-type container = {
-    price: number,
-    quantity: number,
-}
-
-interface Depth{
-    asks: container[],
-    bids: container[],
-    lastUpdatedAt: number,
-    timeStamp: string
-}
-
-export interface Fill {
-    price: number;
-    qty: number;
-    tradeId: number;
-    otherUserId: string;
-    markerOrderId: string;
-}
+export const BASE_CURRENCY = "INR";
 
 export class OrderBook{
     bids: Order[];
@@ -39,7 +13,7 @@ export class OrderBook{
     lastTradeId: number;
     currentPrice: number;
 
-    constructor(bids: Order[], asks: Order[], baseAsset: string, quoteAsset: any, lastTradeId: number, currentPrice: number){
+    constructor(bids: Order[], asks: Order[], baseAsset: string, lastTradeId: number, currentPrice: number){
         this.bids = bids;
         this.asks = asks;
         this.baseAsset = baseAsset;
@@ -61,7 +35,7 @@ export class OrderBook{
         }
     }
 
-    sortOrderBooks(){
+    public sortOrderBooks(){
         this.bids.sort((a, b) => b.price - a.price);
         this.asks.sort((a, b) => a.price - b.price);
     }
@@ -164,5 +138,33 @@ export class OrderBook{
             timeStamp:  timeStamp.toString() ?? ""
         }
         return ans;
+    }
+
+    public getOpenOrders(userId: String): Order[]{
+        const userBids: Order[] = this.bids.filter(order => order.userId === userId);
+        const userAsks: Order[] = this.asks.filter(order => order.userId === userId);
+        return [...userAsks, ...userBids];
+    }
+
+    public cancelBid(cancelBid: Order): number{
+        for(let i=0;i<this.bids.length;i++){
+            if(cancelBid === this.bids[i]){
+                const price = this.bids[i].price;
+                this.bids.splice(i,1);
+                return price;
+            }
+        }
+        return -1;
+    }
+
+    public cancelAsks(cancelAskOrder: Order): number{
+        for(let i=0; i< this.asks.length; i++){
+            if(cancelAskOrder === this.asks[i]){
+                const price = this.asks[i].price;
+                this.asks.splice(i, 1);
+                return price;
+            }
+        }
+        return -1;
     }
 }

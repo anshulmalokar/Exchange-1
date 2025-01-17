@@ -18,8 +18,14 @@ export class UserManager{
     public addUser(ws: WebSocket){
         const id = generateRandomId(5);
         const user = new User(id, ws);
+        user.addListnerss()
         this.usersmap.set(id, user);
-        return user;
+        this.addCloseListner(user, id);
+    }
+
+    
+    private addCloseListner(user: User, userId: string){
+        user.getWsConnectionIbject().on('close', () => {this.usersmap.delete(userId);});
     }
 
     public getUser(id: String){

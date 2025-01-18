@@ -16,16 +16,11 @@ export class RedisManager{
         if(!this.instance) return new RedisManager();
         return this.instance;
     }
-
-    public sendToApi(clientId: string, message: any){
-        this.redisClient.publish(clientId, JSON.stringify(message));
-    }
-
-    public addToQueue(key:any, elements: any){
-        this.redisClient.lPush(key, elements);
-    }
     
-    public getFromQueue(key: string){
-        return this.redisClient.get(key);
+    public async getFromQueue(key: string){
+        const message = await this.redisClient.get(key);
+        if(message){
+            return JSON.parse(message);
+        }
     }
 }

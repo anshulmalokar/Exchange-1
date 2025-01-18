@@ -6,7 +6,7 @@ export const GET_OPEN_ORDERS = "GET_OPEN_ORDERS";
 
 type orderType = 'buy' | 'sell';
 
-export type MessageFromApi = {
+export type MessageToEngine = {
     type: typeof CREATE_ORDER,
     data: {
         market: string,
@@ -17,7 +17,7 @@ export type MessageFromApi = {
     }
 }
 
-export type MessageFromApiToCancleOrder = {
+export type MessageToEngineToCancleOrder = {
     type: typeof CANCEL_ORDER,
     data: {
         orderId: string,
@@ -25,7 +25,7 @@ export type MessageFromApiToCancleOrder = {
     }
 } 
  
-export type MessageFromApiOnRamp = {
+export type MessageToEngineOnRamp = {
     type: typeof ON_RAMP,
     data: {
         amount: string,
@@ -33,14 +33,14 @@ export type MessageFromApiOnRamp = {
         txnId: string
     }
 }  
-export type MessageFromApiGetDepth = {
+export type MessageToEngineGetDepth = {
     type: typeof GET_DEPTH,
     data: {
         market: string
     }
 }
 
-export type MessageFromApiGetOpenOrders = {
+export type MessageToEngineGetOpenOrders = {
     type: typeof GET_OPEN_ORDERS,
     data: {
         market: string,

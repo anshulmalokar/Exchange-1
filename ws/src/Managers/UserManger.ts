@@ -10,9 +10,9 @@ export class UserManager{
     }
     static getInstance(){
         if(!UserManager.instance){
-            return UserManager.instance = new UserManager();
+            return this.instance = new this();
         }
-        return UserManager.instance;
+        return this.instance;
     }
 
     public addUser(ws: WebSocket){

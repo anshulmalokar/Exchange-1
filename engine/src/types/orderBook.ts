@@ -25,7 +25,13 @@ export class OrderBook{
         return `${this.baseAsset}_${this.quoteAsset}`
     }
 
-    public getSnapshot() {
+    public getSnapshot():{
+        baseAsset: string,
+        bids: Order[],
+        asks: Order[],
+        lastTradeId: number,
+        currentPrice: number
+    } {
         return {
             baseAsset: this.baseAsset,
             bids: this.bids,
@@ -44,17 +50,29 @@ export class OrderBook{
         executedQt: number,
         fills: Fill[]
     }{
-        let fills: Fill[] = [];
-        let executedQt = 0;
-        if(order.side === "buy"){
-            this.matchBids(order);
-        }else{
-
-        }
-        return {
+        let response:{
+            executedQt: number,
+            fills: Fill[]
+        } = {
             executedQt: 0,
-            fills: fills
+            fills: []
         };
+        if(order.side === "buy"){
+            response = this.matchBids(order);
+            if(response.executedQt < order.quantity){
+                order.quantity = order.quantity - response.executedQt;
+                order.filled = response.executedQt;
+                this.bids.push(order);
+            }
+        }else{
+            response = this.matchAsks(order);
+            if(response.executedQt < order.quantity){
+                order.quantity = order.quantity - response.executedQt;
+                order.filled = response.executedQt;
+                this.asks.push(order);
+            }
+        }
+        return response;
     }
 
     public matchBids(order: Order){
@@ -116,7 +134,7 @@ export class OrderBook{
         return {executedQt, fills};
     }
 
-    public getDepths(): {}{
+    public getDepths(): Depth{
         const arr1:container[] = [];
         const arr2:container[] = [];
         const lastUpdatedAt = 0;
@@ -141,6 +159,7 @@ export class OrderBook{
     }
 
     public getOpenOrders(userId: String): Order[]{
+        // print the bids array
         const userBids: Order[] = this.bids.filter(order => order.userId === userId);
         const userAsks: Order[] = this.asks.filter(order => order.userId === userId);
         return [...userAsks, ...userBids];

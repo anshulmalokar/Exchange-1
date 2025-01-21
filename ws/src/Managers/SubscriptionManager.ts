@@ -14,10 +14,10 @@ export class SubscriptionManager {
     this.subscriber.connect();
   }
   public static getInstance() {
-    if (!SubscriptionManager.instance) {
-      SubscriptionManager.instance = new SubscriptionManager();
+    if (this.instance === undefined) {
+      return this.instance = new this();
     }
-    return SubscriptionManager.instance;
+    return this.instance;
   }
 
   public subscribe(userId: string, subscription: string) {

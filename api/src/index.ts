@@ -4,11 +4,15 @@ import tickersRouter from "./routes/tickersRouter";
 import depthRouter from "./routes/depthRouter";
 import tradesRouter from "./routes/tradesRouter";
 import klineRouter from "./routes/klineRouter";
+import dotenv from 'dotenv'; 
+import onRampRouter from "./routes/onRampRouter";
+dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 const app = express();
 app.use(express.json());
 
+app.use("/api/v1/onRamp", onRampRouter);
 app.use("/api/v1/order", orderRouter);
 app.use("/api/v1/depth", depthRouter);
 app.use("/api/v1/trades", tradesRouter);

@@ -1,10 +1,10 @@
 import { Router } from "express";
 import { RedisManager } from "../Manager/RedisManager";
-import { CANCEL_ORDER, CREATE_ORDER, GET_OPEN_ORDERS, MessageToEngine, MessageToEngineGetOpenOrders, MessageToEngineToCancleOrder } from "../types";
+import { CANCEL_ORDER, CREATE_ORDER, GET_OPEN_ORDERS, MessageFromEngine, MessageToEngine, MessageToEngineGetOpenOrders, MessageToEngineToCancleOrder } from "../types";
 
 const orderRouter = Router();
 
-orderRouter.get("/", async(req, res) => {
+orderRouter.get("/user", async(req, res) => {
     const {userId, market} = req.body;
     const message: MessageToEngineGetOpenOrders = {
         type: GET_OPEN_ORDERS,
@@ -13,8 +13,11 @@ orderRouter.get("/", async(req, res) => {
             userId
         }
     };
-    const response = await RedisManager.getInstance().sendAndawait(message);
-    res.status(200).json(response);
+    let response = await RedisManager.getInstance().sendAndawait(message, userId);
+    response = JSON.parse(response.toString());
+    res.status(200).json({
+        response
+    });
 })
 
 orderRouter.post("/",async (req, res) => {
@@ -23,14 +26,16 @@ orderRouter.post("/",async (req, res) => {
         type: CREATE_ORDER,
         data: {
             market: market,
-            price: price,
-            quantlty: quantity,
+            price: Number(price),
+            quantity: Number(quantity),
             side: side,
             userId: userId 
         }
     }
-    const respone = await RedisManager.getInstance().sendAndawait(message);
-    res.status(200).json(respone);
+    const response: String = await RedisManager.getInstance().sendAndawait(message, userId) || "";
+    res.status(200).json({
+        data: JSON.parse(response.toString())
+    });
 });
 
 orderRouter.delete("/:id",async (req, res) => {
@@ -43,9 +48,9 @@ orderRouter.delete("/:id",async (req, res) => {
             market: market
         }
     }
-    const response = await RedisManager.getInstance().sendAndawait(message);
+    const response = RedisManager.getInstance().sendAndawait(message, orderId);
     res.status(200).json(response);
-})
+});
 
 
 

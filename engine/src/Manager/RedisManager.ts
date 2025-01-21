@@ -3,7 +3,7 @@ import { createClient, RedisClientType } from 'redis';
 export class RedisManager{
     private static instance: RedisManager;
     private redisClient!: RedisClientType;
-    private RedisManager(){
+    private constructor(){
         this.redisClient = createClient({ url: 'redis://localhost:6379' });
         this.redisClient.connect();
     }
@@ -13,7 +13,9 @@ export class RedisManager{
     }    
 
     public static getInstance(): RedisManager {
-        if(!this.instance) return new RedisManager();
+        if(this.instance === undefined){
+            return this.instance = new RedisManager();
+        }
         return this.instance;
     }
 

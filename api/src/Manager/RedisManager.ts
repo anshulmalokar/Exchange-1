@@ -1,40 +1,29 @@
 import { createClient, RedisClientType } from 'redis';
+import { MessageFromEngine } from '../types';
 export class RedisManager{
     private static instance: RedisManager;
-    private redisClient!: RedisClientType;
-    private RedisManager(){
-        this.redisClient = createClient({ url: 'redis://localhost:6379' });
-        this.redisClient.connect();
+    private pushClient!: RedisClientType;
+    private subscribeClient!: RedisClientType;
+    private constructor(){
+        this.pushClient = createClient({ url: 'redis://localhost:6379' });
+        this.subscribeClient = createClient({ url: 'redis://localhost:6379' });
+        this.pushClient.connect();
+        this.subscribeClient.connect();
     }
 
-    public static getInstance(): RedisManager{
-        if(this.instance === null){
-            return new RedisManager();
+    public static getInstance(): RedisManager {
+        if(this.instance === undefined){
+            return this.instance = new RedisManager();
         }
         return this.instance;
     }
 
-    public sendAndawait(message: any){
-        const id = generateRandomId(5);
-        this.redisClient.lPush("message",JSON.stringify({id, message}));
+    public async sendAndawait(message: any, id: string): Promise<String>{
+        this.pushClient.lPush("message",JSON.stringify({id, message}));
         return new Promise((r) => {
-            this.redisClient.subscribe(id+"", (message) => {
+            this.subscribeClient.subscribe(id, (message) => {
                 r(message);
             });
         });
     }
-
-
 }
-
-function generateRandomId(length: number = 8): string {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    
-    for (let i = 0; i < length; i++) {
-      const randomIndex = Math.floor(Math.random() * characters.length);
-      result += characters[randomIndex];
-    }
-    
-    return result;
-  }

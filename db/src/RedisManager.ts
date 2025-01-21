@@ -18,7 +18,7 @@ export class RedisManager{
     }
     
     public async getFromQueue(key: string){
-        const message = await this.redisClient.get(key);
+        const message = await this.redisClient.rPop(key);
         if(message){
             return JSON.parse(message);
         }

@@ -11,7 +11,7 @@ export type MessageToEngine = {
     data: {
         market: string,
         price: number,
-        quantlty: number,
+        quantity: number,
         side: orderType,
         userId: string
     }
@@ -46,4 +46,17 @@ export type MessageToEngineGetOpenOrders = {
         market: string,
         userId: string
     }
+}
+
+export type MessageFromEngine = {
+    executedQt: number;
+    fills: Fill[];
+}
+
+export interface Fill {
+    price: number;
+    qty: number;
+    tradeId: number;
+    otherUserId: string;
+    markerOrderId: string;
 }

@@ -12,8 +12,8 @@ depthRouter.get("/", async (req: Request, res: Response) => {
       market: market,
     },
   };
-  const response = await RedisManager.getInstance().sendAndawait(obj);
-  res.status(200).json(response);
+  const response = await RedisManager.getInstance().sendAndawait(obj, market);
+  res.status(200).json(JSON.parse(response.toString()));
 });
 
 export default depthRouter;

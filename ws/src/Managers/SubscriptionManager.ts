@@ -53,6 +53,11 @@ export class SubscriptionManager {
 
   public userLeft(userId: string){
     this.subscriptionsArr.get(userId)?.forEach(sub => this.unsubscribe(userId, sub));
+    this.reversesubscriptions.forEach((sub, key) => {
+      let index = sub.indexOf(userId); 
+      sub.splice(index, 1);
+      if(sub.length == 0) this.reversesubscriptions.delete(key);
+    })
   }
  
   public getSubscriptions(userId: string){

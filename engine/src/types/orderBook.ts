@@ -159,7 +159,6 @@ export class OrderBook{
     }
 
     public getOpenOrders(userId: String): Order[]{
-        // print the bids array
         const userBids: Order[] = this.bids.filter(order => order.userId === userId);
         const userAsks: Order[] = this.asks.filter(order => order.userId === userId);
         return [...userAsks, ...userBids];

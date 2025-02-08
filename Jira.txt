@@ -1,0 +1,21 @@
+Tasks
+1 - Complete the OnRamp Functionality
+    Flow of the onRamp functionality will be like 
+    Api -> Redis -> Engine -> UserBalanceMap
+    Things to do
+    - UserBalance : { "TATA_INR" : {balance: x, locked: y}}
+    - Req body
+    - {
+        type: "INR",
+        userId: "id",
+        market: TATA_INR,
+        amount: xyz
+    }
+2 - Complete the webSocket layer
+    Things to do
+    - Once any order is made and put into the order book 
+    - put a message in the queue which will be consumed by the webSocket layer
+    - then this will be pushed to the frontend via the webSocket
+3 - Once the order is done and put into the orderBook
+    - Update the trade in the database too
+    - 

@@ -4,7 +4,6 @@ import {
   CREATE_ORDER,
   GET_DEPTH,
   GET_OPEN_ORDERS,
-  MessageFromApi,
   ON_RAMP,
 } from "../types/pub-sub/fromApi";
 import { UserBalance } from "../types/UserBalance";
@@ -14,14 +13,7 @@ import { Order } from "../types/order";
 import { Fill } from "../types/Fills";
 import { Depth } from "../types/depth";
 import { generateRandomId } from "../utils";
-
-type incoming = {
-  id: string;
-  message: {
-    type: string;
-    data: any;
-  };
-};
+import { incoming } from "../types/incoming";
 
 export class OrderBookManager {
   private static instance: OrderBookManager;
@@ -137,7 +129,11 @@ export class OrderBookManager {
       case CREATE_ORDER:
         try {
           // @ts-ignore
-          const { userId, price, quantity, side } = message.message.data;
+          const { data: {
+                amount: amount,
+                userId: userId,
+                currency: currency
+            }, price, quantity, side } = message.message.data;
           const check: Boolean = this.checkUserCanTransact(
             userId,
             Number(price),
@@ -183,6 +179,8 @@ export class OrderBookManager {
               type: CREATE_ORDER,
               data: { orderId: orderId, response },
             });
+            const topic = `bookTicker.${baseAsset}_${quoteAsset}`;
+            this.publishToWSLayer(baseAsset, quoteAsset, topic);
           } else {
             throw new Error("process: CREATR_ORDER: Internal Server Error");
           }
@@ -229,6 +227,8 @@ export class OrderBookManager {
               asks.splice(orderIndex, 1);
             }
             if (flag) {
+              const topic = `bookTicker.${baseAsset}_${quoteAsset}`;
+              this.publishToWSLayer(baseAsset, quoteAsset, topic);
               RedisManager.getInstance().sendToApi(clientId, {
                 type: CANCEL_ORDER,
                 message: {
@@ -248,6 +248,50 @@ export class OrderBookManager {
         }
         break;
       case ON_RAMP:
+        try{
+          const data: {
+            amount: number,
+            userId: string,
+            currency: string
+          } = message.message.data;
+          let final_balance = 0;
+          let final_locked = 0;
+          const userBalance: UserBalance | undefined = this.balanceBooks.get(clientId);
+          if (userBalance !== undefined) {
+            const x:{balance: number, locked: number} = userBalance[data.currency];
+            if (x !== undefined) {
+              x.balance = x.balance+data.amount;
+              final_balance = x.balance;
+              final_locked = x.locked;
+              userBalance[data.currency].balance = x.balance;
+              userBalance[data.currency].locked = x.locked;
+              this.balanceBooks.set(data.userId, userBalance);
+            }
+          }else{
+            const x:{balance: number, locked: number} = {
+              balance: data.amount,
+              locked: 0
+            }
+            final_balance = x.balance;
+            final_locked = x.locked;
+            this.balanceBooks.set(data.userId, {
+              [data.currency]: x
+            });
+          }
+          RedisManager.getInstance().sendToApi(clientId, {
+            type: ON_RAMP,
+            message: {
+              success: true,
+              balance: final_balance,
+              locked: final_locked
+            },
+          });
+        }catch(e){
+          RedisManager.getInstance().sendToApi(clientId, {
+            type: ON_RAMP,
+            message: "",
+          });
+        }
         break;
       case GET_DEPTH:
         try {
@@ -364,6 +408,16 @@ export class OrderBookManager {
     } catch (e) {
       console.log(e);
       throw new Error("checkUserCanTransact: error");
+    }
+  }
+
+  private publishToWSLayer(baseAsset: String, quoteAsset: String, topic: string){
+    try{
+      const orderBook = this.orderBooks.find(o => o.baseAsset === baseAsset 
+        && o.quoteAsset === quoteAsset);
+      RedisManager.getInstance().sendToWS(topic,orderBook);
+    }catch(e){
+      console.log("publishToWSLayer : --- : \n", e);
     }
   }
 }

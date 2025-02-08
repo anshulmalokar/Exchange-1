@@ -22,6 +22,10 @@ export class RedisManager{
     public sendToApi(clientId: string, message: any){
         this.redisClient.publish(clientId, JSON.stringify(message));
     }
+    
+    public sendToWS(topic: string, message: any){
+        this.redisClient.publish(topic, JSON.stringify(message));
+    }
 
     public addToQueue(key:any, elements: any){
         this.redisClient.lPush(key, elements);
